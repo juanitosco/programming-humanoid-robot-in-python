@@ -14,6 +14,7 @@ import os
 import sys
 sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), '..', 'software_installation'))
 
+
 import numpy as np
 from collections import deque
 from spark_agent import SparkAgent, JOINT_CMD_NAMES
@@ -53,7 +54,12 @@ class PIDController(object):
         @return control signal
         '''
         # YOUR CODE HERE
-
+        e = target - sensor   # error
+        self.e1 = self.e1 + e  # integral
+        self.e2 = (e - self.e2)/self.dt   # derivative 
+        self.u = self.Kp * e + self.Ki * self.e1 + self.Kd * self.e2
+        self.e2 = e
+        self.y.append(sensor)
         return self.u
 
 
