@@ -22,8 +22,9 @@
 
 from pid import PIDAgent
 from keyframes import hello
-import matplotlib.pyplot as plt
-import numpy as np
+
+
+
 
 
 class AngleInterpolationAgent(PIDAgent):
@@ -34,6 +35,7 @@ class AngleInterpolationAgent(PIDAgent):
                  sync_mode=True):
         super(AngleInterpolationAgent, self).__init__(simspark_ip, simspark_port, teamname, player_id, sync_mode)
         self.keyframes = ([], [], [])
+        self.start_time = self.perception.time
 
     def think(self, perception):
         target_joints = self.angle_interpolation(self.keyframes, perception)
@@ -44,45 +46,31 @@ class AngleInterpolationAgent(PIDAgent):
     def angle_interpolation(self, keyframes, perception):
         target_joints = {}
         # YOUR CODE HERE
-        current_time = perception.time
-        names, times, keys = keyframes
+    
         
-        for i in range(len(names)):
-            for j in range(len(times[i]) - 1):
-                if times[i][j] <= current_time < times[i][j + 1]:
-                    t = (current_time - times[i][j]) / (times[i][j + 1] - times[i][j])
+        current_time = perception.time - self.start_time
+        names, times, keys = keyframes 
+        
+        for i, name in enumerate(names):
+            for j in range(len(times[i])-1):
+                if (times[i][j] < current_time < times[i][len(times[i])-1]):
+                    t = (current_time - times[i][j]) / (times[i][j + 1] - times[i][j])          
                     p0 = keys[i][j][0]
-                    p1 = keys[i][j][1][2]  
+                    p1 =p0 + keys[i][j][2][2]  
                     p2 = keys[i][j + 1][1][0]  
-                    p3 = keys[i][j + 1][0]
+                    p3 =p2 + keys[i][j + 1][1][2]
 
-                    target_joints[names[i]] = (1 - t)**3 * p0 + 3 * (1 - t)**2 * t * p1 + 3 * (1 - t) * t**2 * p2 + t**3 * p3
+                    target_joints[name] = (1-t)**3 * p0 + 3*(1-t)**2 * t*p1 + 3*(1-t) * t**2 * p2 + t**3 * p3
 
-# Generate the Bezier curve points
+
+        if 'LHipYawPitch' in target_joints:
+            target_joints['RHipYawPitch'] = target_joints['LHipYawPitch']
 
         return target_joints
-
 if __name__ == '__main__':
     agent = AngleInterpolationAgent()
     agent.keyframes = hello()  # CHANGE DIFFERENT KEYFRAMES
     agent.run()
 
 
-    time_values = np.linspace(0, 0.1, 100)  # Example time values from 0 to 3 seconds
-
-# Calculate angles using the interpolation function
-angle_values = {}
-for joint_name in hello():
-    angle_values[joint_name] = [AngleInterpolationAgent.angle_interpolation(hello, t) for t in time_values]
-
-# Plot the results for each joint
-plt.figure()
-for joint_name in hello:
-    plt.plot(time_values, angle_values[joint_name], label=joint_name)
-
-plt.xlabel("Time (s)")
-plt.ylabel("Angle")
-plt.title("Interpolation of Angles Over Time")
-plt.legend()
-plt.grid()
-plt.show()
+    
