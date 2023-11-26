@@ -56,9 +56,9 @@ class AngleInterpolationAgent(PIDAgent):
                 if (times[i][j] < current_time < times[i][len(times[i])-1]):
                     t = (current_time - times[i][j]) / (times[i][j + 1] - times[i][j])          
                     p0 = keys[i][j][0]
-                    p1 =p0 + keys[i][j][2][2]  
-                    p2 = keys[i][j + 1][1][0]  
-                    p3 =p2 + keys[i][j + 1][1][2]
+                    p1 = p0 + keys[i][j][1][2]
+                    p3 = keys[i][j + 1][0]
+                    p2 = p3 + keys[i][j][1][2]
 
                     target_joints[name] = (1-t)**3 * p0 + 3*(1-t)**2 * t*p1 + 3*(1-t) * t**2 * p2 + t**3 * p3
 

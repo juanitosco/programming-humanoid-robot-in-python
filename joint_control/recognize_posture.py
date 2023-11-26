@@ -9,10 +9,12 @@
 
 '''
 
-
+import os
 from angle_interpolation import AngleInterpolationAgent
 from keyframes import hello
 from joblib import load
+import pickle
+ROBOT_POSE_CLF = 'robot_pose.joblib'
 
 class PostureRecognitionAgent(AngleInterpolationAgent):
     def __init__(self, simspark_ip='localhost',
@@ -22,8 +24,11 @@ class PostureRecognitionAgent(AngleInterpolationAgent):
                  sync_mode=True):
         super(PostureRecognitionAgent, self).__init__(simspark_ip, simspark_port, teamname, player_id, sync_mode)
         self.posture = 'unknown'
-        self.posture_classifier = load('robot_pose.joblib')  # LOAD YOUR CLASSIFIER
-
+        
+        self.dir = os.path.dirname(__file__) #absolute dir the script is in
+        robot_pose_pkl_path = os.path.join(self.dir, ROBOT_POSE_CLF)
+        self.posture_classifier = load(robot_pose_pkl_path) 
+    
     def think(self, perception):
         self.posture = self.recognize_posture(perception)
         return super(PostureRecognitionAgent, self).think(perception)
